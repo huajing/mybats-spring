@@ -87,6 +87,7 @@ public final class SqlSessionUtils {
    *           if a transaction is active and the {@code SqlSessionFactory} is not using a
    *           {@code SpringManagedTransactionFactory}
    * @see SpringManagedTransactionFactory
+   * 这个方法逻辑比较多
    */
   public static SqlSession getSqlSession(SqlSessionFactory sessionFactory, ExecutorType executorType,
       PersistenceExceptionTranslator exceptionTranslator) {
@@ -94,6 +95,7 @@ public final class SqlSessionUtils {
     notNull(sessionFactory, NO_SQL_SESSION_FACTORY_SPECIFIED);
     notNull(executorType, NO_EXECUTOR_TYPE_SPECIFIED);
 
+    //TransactionSynchronizationManager 为spring-tx中的类，核心实现ThreadLocal
     SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
 
     SqlSession session = sessionHolder(executorType, holder);
@@ -124,6 +126,7 @@ public final class SqlSessionUtils {
    *          persistenceExceptionTranslator used for registration.
    * @param session
    *          sqlSession used for registration.
+   * 注册到事务管理器中
    */
   private static void registerSessionHolder(SqlSessionFactory sessionFactory, ExecutorType executorType,
       PersistenceExceptionTranslator exceptionTranslator, SqlSession session) {
@@ -204,6 +207,8 @@ public final class SqlSessionUtils {
    * @param sessionFactory
    *          the SqlSessionFactory which the SqlSession was built with
    * @return true if session is transactional, otherwise false
+   * 是否开启事务
+   *
    */
   public static boolean isSqlSessionTransactional(SqlSession session, SqlSessionFactory sessionFactory) {
     notNull(session, NO_SQL_SESSION_SPECIFIED);

@@ -72,7 +72,11 @@ import org.springframework.context.annotation.Import;
  * @since 1.2.0
  * @see MapperScannerRegistrar
  * @see MapperFactoryBean
+ *
+ *
+ * Mapper包的扫描注释，利用spring的扩展点MapperScannerRegistrar，注册BeanDefinition
  */
+
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented

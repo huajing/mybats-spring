@@ -85,6 +85,10 @@ import org.springframework.util.ClassUtils;
  *
  * @see #setConfigLocation
  * @see #setDataSource
+ *
+ * SqlSessionFactory的FactoryBean
+ * 扩展Spring的InitializingBean-->afterPropertiesSet
+ *             ApplicationListener-->onApplicationEvent
  */
 public class SqlSessionFactoryBean
     implements FactoryBean<SqlSessionFactory>, InitializingBean, ApplicationListener<ApplicationEvent> {

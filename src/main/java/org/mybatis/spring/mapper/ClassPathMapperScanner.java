@@ -163,6 +163,7 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
   /**
    * Configures parent scanner to search for the right interfaces. It can search for all interfaces or just for those
    * that extends a markerInterface or/and those annotated with the annotationClass
+   * 注册扫描包时包含或者排除的过滤器
    */
   public void registerFilters() {
     boolean acceptAllInterfaces = true;
@@ -185,6 +186,7 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
     }
 
     if (acceptAllInterfaces) {
+      //MapperScan配置包下的所有类都扫描加入spring容器中
       // default include filter that accepts all classes
       addIncludeFilter((metadataReader, metadataReaderFactory) -> true);
     }
@@ -233,6 +235,7 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
 
       // the mapper interface is the original class of the bean
       // but, the actual class of the bean is MapperFactoryBean
+      //这里很重要，把mapper作为MapperFactoryBean的构造参数，从而达到每个Mapper有对应的MapperFactoryBean
       definition.getConstructorArgumentValues().addGenericArgumentValue(beanClassName); // issue #59
       try {
         // for spring-native
@@ -241,6 +244,7 @@ public class ClassPathMapperScanner extends ClassPathBeanDefinitionScanner {
         // ignore
       }
 
+      //改变BeanDefinition的class为MapperFactoryBean，
       definition.setBeanClass(this.mapperFactoryBeanClass);
 
       definition.getPropertyValues().add("addToConfig", this.addToConfig);

@@ -71,6 +71,9 @@ import org.springframework.dao.support.PersistenceExceptionTranslator;
  *
  * @see SqlSessionFactory
  * @see MyBatisExceptionTranslator
+ * sql的执行模板类，SqlSession的实现
+ * SqlSession有3个实现：DefaultSqlSession，SqlSessionManager，SqlSessionTemplate，前2个在mybatis.jar中
+ *
  */
 public class SqlSessionTemplate implements SqlSession, DisposableBean {
 
@@ -128,6 +131,8 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
     this.sqlSessionFactory = sqlSessionFactory;
     this.executorType = executorType;
     this.exceptionTranslator = exceptionTranslator;
+
+    //sqlSession代理sqlSession的执行，具体逻辑见SqlSessionInterceptor
     this.sqlSessionProxy = (SqlSession) newProxyInstance(SqlSessionFactory.class.getClassLoader(),
         new Class[] { SqlSession.class }, new SqlSessionInterceptor());
   }
@@ -417,6 +422,8 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
    * Proxy needed to route MyBatis method calls to the proper SqlSession got from Spring's Transaction Manager It also
    * unwraps exceptions thrown by {@code Method#invoke(Object, Object...)} to pass a {@code PersistenceException} to the
    * {@code PersistenceExceptionTranslator}.
+   * jdk动态代理InvocationHandler的实现
+   * 代理sqlSession的执行
    */
   private class SqlSessionInterceptor implements InvocationHandler {
     @Override
@@ -424,14 +431,19 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
       SqlSession sqlSession = getSqlSession(SqlSessionTemplate.this.sqlSessionFactory,
           SqlSessionTemplate.this.executorType, SqlSessionTemplate.this.exceptionTranslator);
       try {
+        //调用被代理对象的方法，执行正常的逻辑
         Object result = method.invoke(sqlSession, args);
+
+        //检查是否开启事务，事务管理器中的sqlSession与当前sqlSession是否一样，一样则开启了事务
         if (!isSqlSessionTransactional(sqlSession, SqlSessionTemplate.this.sqlSessionFactory)) {
           // force commit even on non-dirty sessions because some databases require
           // a commit/rollback before calling close()
+          //提交事务
           sqlSession.commit(true);
         }
         return result;
       } catch (Throwable t) {
+        //异常情况如何处理
         Throwable unwrapped = unwrapThrowable(t);
         if (SqlSessionTemplate.this.exceptionTranslator != null && unwrapped instanceof PersistenceException) {
           // release the connection to avoid a deadlock if the translator is no loaded. See issue #22
@@ -445,6 +457,7 @@ public class SqlSessionTemplate implements SqlSession, DisposableBean {
         }
         throw unwrapped;
       } finally {
+        //自动关闭sqlSession，不需要程序员后关闭，这就是代理后的好处理
         if (sqlSession != null) {
           closeSqlSession(sqlSession, SqlSessionTemplate.this.sqlSessionFactory);
         }

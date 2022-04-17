@@ -50,6 +50,10 @@ import org.springframework.util.StringUtils;
  * @see MapperFactoryBean
  * @see ClassPathMapperScanner
  * @since 1.2.0
+ *
+ * 利用srping的2个扩展点注册BeanDefinition
+ *  ImportBeanDefinitionRegistrar --> registerBeanDefinitions
+ *  ResourceLoaderAware --> setResourceLoader
  */
 public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware {
 
@@ -77,6 +81,13 @@ public class MapperScannerRegistrar implements ImportBeanDefinitionRegistrar, Re
     }
   }
 
+  /**
+   * 注册BeanDefinition
+   * @param annoMeta
+   * @param annoAttrs
+   * @param registry
+   * @param beanName
+   */
   void registerBeanDefinitions(AnnotationMetadata annoMeta, AnnotationAttributes annoAttrs,
       BeanDefinitionRegistry registry, String beanName) {
 

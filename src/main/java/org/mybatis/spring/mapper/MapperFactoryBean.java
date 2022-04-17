@@ -50,6 +50,10 @@ import org.springframework.beans.factory.FactoryBean;
  * @author Eduardo Macarron
  *
  * @see SqlSessionTemplate
+ *
+ * FactoryBean 有3个方法要实现，在注册BeanDefinitioin时，对应的class类MapperFactoryBean，而不是Mapper接口，
+ * 接口是不能实例化的，在spring中getBean时，如果当前对象为FactoryBean类，则会调用这3个方法来生成实例对象
+ *
  */
 public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements FactoryBean<T> {
 
@@ -61,6 +65,10 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
     // intentionally empty
   }
 
+  /**
+   * 每个mapper都会创建自己对应的FactoryBean
+   * @param mapperInterface
+   */
   public MapperFactoryBean(Class<T> mapperInterface) {
     this.mapperInterface = mapperInterface;
   }
@@ -77,6 +85,9 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
     Configuration configuration = getSqlSession().getConfiguration();
     if (this.addToConfig && !configuration.hasMapper(this.mapperInterface)) {
       try {
+        /**
+         * mapper接口添加到config中，方便后期查找调用
+         */
         configuration.addMapper(this.mapperInterface);
       } catch (Exception e) {
         logger.error("Error while adding the mapper '" + this.mapperInterface + "' to configuration.", e);
@@ -89,6 +100,7 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
 
   /**
    * {@inheritDoc}
+   * FactoryBean-->getObject 获取FactoryBean的创建的对象
    */
   @Override
   public T getObject() throws Exception {
@@ -97,6 +109,7 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
 
   /**
    * {@inheritDoc}
+   * FactoryBean-->getObjectType 获取FactoryBean的创建的对象的类型
    */
   @Override
   public Class<T> getObjectType() {
@@ -105,6 +118,7 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
 
   /**
    * {@inheritDoc}
+   * FactoryBean-->isSingleton 获取FactoryBean的创建的对象的类型是否为单例，默认为true
    */
   @Override
   public boolean isSingleton() {
